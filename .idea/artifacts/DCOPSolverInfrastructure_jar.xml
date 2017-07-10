@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="DCOPSolverInfrastructure:jar">
+    <output-path>$PROJECT_DIR$/../DCOPSolverInfrastructure/out/artifacts/DCOPSolverInfrastructure_jar</output-path>
+    <root id="archive" name="DCOPSolverInfrastructure.jar">
+      <element id="module-output" name="DCOPSolverInfrastructure" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../DCOPSolverInfrastructure/libs/jtree_dischoco.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../DCOPSolverInfrastructure/libs/jdom-2.0.3.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
