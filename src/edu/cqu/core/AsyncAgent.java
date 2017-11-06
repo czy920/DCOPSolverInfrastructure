@@ -1,10 +1,8 @@
 package edu.cqu.core;
 
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Created by dyc on 2017/6/16.
@@ -18,7 +16,7 @@ public abstract class AsyncAgent extends Agent {
         super(id, domain, neighbours, constraintCosts, neighbourDomains);
         messageQueue = new LinkedList<>();
         this.mailer = mailer;
-        mailer.registerAgent(this);
+        mailer.register(this);
     }
 
     @Override

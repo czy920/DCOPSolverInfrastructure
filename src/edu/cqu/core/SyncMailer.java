@@ -25,6 +25,7 @@ public class SyncMailer extends Process{
     private ResultCycle resultCycle;
     private long startTime;
     private FinishedListener listener;
+    private Set<Agent> stoppedAgents;
 
     public SyncMailer(){
         super("mailer");
@@ -33,6 +34,7 @@ public class SyncMailer extends Process{
         agentReady = new HashSet<>();
         phase = new AtomicInteger(PHASE_AGENT);
         costInCycle = new double[2];
+        stoppedAgents = new HashSet<>();
     }
 
     public SyncMailer(FinishedListener finishedListener){
@@ -54,8 +56,7 @@ public class SyncMailer extends Process{
 
     public void addMessage(Message message) {
         synchronized (phase){
-            while (phase.get() == PHASE_MAILER){
-            }
+            while (phase.get() == PHASE_MAILER);
             synchronized (messageQueue){
                 messageQueue.add(message);
             }
@@ -86,6 +87,9 @@ public class SyncMailer extends Process{
                 for (SyncAgent syncAgent : agents.values()){
                     if (syncAgent.isRunning()){
                         canTerminate = false;
+                    }
+                    else {
+                        stoppedAgents.add(syncAgent);
                     }
                     cost += syncAgent.getLocalCost();
                 }
@@ -120,7 +124,7 @@ public class SyncMailer extends Process{
     public synchronized void agentDone(int id){
         synchronized (agentReady){
             agentReady.add(id);
-            if (agentReady.size() == agents.size()){
+            if (agentReady.size() == agents.size() - stoppedAgents.size()){
                 phase.set(PHASE_MAILER);
             }
         }

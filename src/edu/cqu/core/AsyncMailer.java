@@ -27,7 +27,7 @@ public class AsyncMailer extends Process {
         listener = finishedListener;
     }
 
-    public void registerAgent(AsyncAgent agent){
+    public void register(AsyncAgent agent){
         agents.put(agent.id,agent);
     }
 

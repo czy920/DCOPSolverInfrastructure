@@ -62,4 +62,9 @@ public abstract class Agent extends Process{
     protected int updateLocalView(int neighbourId,int valueIndex){
         return localView.put(neighbourId,valueIndex);
     }
+
+    protected int getNeighbourValue(int neighbourId){
+        return localView.get(neighbourId);
+    }
+
 }

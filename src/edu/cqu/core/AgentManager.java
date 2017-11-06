@@ -35,7 +35,7 @@ public class AgentManager {
         for (int id : problem.allId){
             Agent agent = null;
             try {
-                Class clazz = Class.forName(descriptor.className);
+                Class clazz = Class.forName(descriptor.className); //  反射
                 Constructor constructor = clazz.getConstructors()[0];
                 agent = (Agent) constructor.newInstance(id,problem.domains.get(id),problem.neighbours.get(id),problem.constraintCost.get(id),problem.getNeighbourDomain(id),
                         syncMailer == null ? asyncMailer : syncMailer);
