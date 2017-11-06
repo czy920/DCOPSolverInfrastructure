@@ -115,13 +115,13 @@ public class Parser {
             constraintCost = new HashMap<>();
             problem.constraintCost.put(pair.former,constraintCost);
         }
-        constraintCost.put(pair.latter,latterConstraintCost);
+        constraintCost.put(pair.latter,formerConstraintCost);
         constraintCost = problem.constraintCost.get(pair.latter);
         if (constraintCost == null){
             constraintCost = new HashMap<>();
             problem.constraintCost.put(pair.latter,constraintCost);
         }
-        constraintCost.put(pair.former,formerConstraintCost);
+        constraintCost.put(pair.former,latterConstraintCost);
     }
 
     protected class AgentPair{
