@@ -67,4 +67,18 @@ public abstract class Agent extends Process{
         return localView.get(neighbourId);
     }
 
+    protected String array2String(int[] arr){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("[");
+        for (int i = 0; i < arr.length; i++){
+            if (i != arr.length - 1){
+                stringBuilder.append(arr[i] + ",");
+            }
+            else {
+                stringBuilder.append(arr[i] + "]");
+            }
+        }
+        return stringBuilder.toString();
+    }
+
 }

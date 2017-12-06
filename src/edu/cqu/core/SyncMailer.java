@@ -26,6 +26,7 @@ public class SyncMailer extends Process{
     private long startTime;
     private FinishedListener listener;
     private Set<Agent> stoppedAgents;
+    private boolean printCycle;
 
     public SyncMailer(){
         super("mailer");
@@ -40,6 +41,11 @@ public class SyncMailer extends Process{
     public SyncMailer(FinishedListener finishedListener){
         this();
         listener = finishedListener;
+    }
+
+
+    public void setPrintCycle(boolean printCycle) {
+        this.printCycle = printCycle;
     }
 
     private void expand(){
@@ -98,6 +104,9 @@ public class SyncMailer extends Process{
                     expand();
                 }
                 costInCycle[tail++] = cost;
+                if (printCycle){
+                    System.out.println("cycle " + tail);
+                }
                 if (canTerminate){
                     stopProcess();
                 }

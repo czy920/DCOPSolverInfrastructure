@@ -17,6 +17,8 @@ public class AgentManager {
     private static final String METHOD_ASYNC = "ASYNC";
     private static final String METHOD_SYNC = "SYNC";
 
+    private static final String CONFIG_KEY_PRINT_CYCLE = "PRINTCYCLE";
+
     private List<Agent> agents;
     private AsyncMailer asyncMailer;
     private SyncMailer syncMailer;
@@ -24,13 +26,23 @@ public class AgentManager {
 
     public AgentManager(String agentDescriptorPath,String agentType,Problem problem,FinishedListener listener) {
         agents = new LinkedList<>();
-        agentDescriptors = new AgentParser(agentDescriptorPath).parse();
+        AgentParser agentParser = new AgentParser(agentDescriptorPath);
+        agentDescriptors = agentParser.parse();
+        if (agentDescriptors.size() == 0){
+            throw new RuntimeException("No agent is defined in manifest");
+        }
+        Map<String,String> configurations = agentParser.parseConfigurations();
         AgentDescriptor descriptor = agentDescriptors.get(agentType.toUpperCase());
         if (descriptor.method.equals(METHOD_ASYNC)){
             asyncMailer = new AsyncMailer(listener);
         }
         else {
             syncMailer = new SyncMailer(listener);
+            if (configurations.containsKey(CONFIG_KEY_PRINT_CYCLE)){
+                if (configurations.get(CONFIG_KEY_PRINT_CYCLE).equals("TRUE")){
+                    syncMailer.setPrintCycle(true);
+                }
+            }
         }
         for (int id : problem.allId){
             Agent agent = null;
