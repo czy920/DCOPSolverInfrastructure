@@ -25,7 +25,7 @@ public class AgentParser {
         Map<String,AgentDescriptor> map = new HashMap<>();
         try {
             Element root = new SAXBuilder().build(new File(agentsPath)).getRootElement();
-            List<Element> agentList = root.getChildren("agent");
+            List<Element> agentList = root.getChildren("agents").get(0).getChildren("agent");
             for (Element agentElement : agentList){
                 String name = agentElement.getAttributeValue("name").toUpperCase();
                 AgentDescriptor agentDescriptor = new AgentDescriptor();
@@ -37,5 +37,22 @@ public class AgentParser {
             e.printStackTrace();
         }
         return map;
+    }
+
+    public Map<String,String> parseConfigurations(){
+        Map<String,String> configurations = new HashMap<>();
+        Element root = null;
+        try {
+            root = new SAXBuilder().build(new File(agentsPath)).getRootElement();
+        } catch (JDOMException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<Element> configurationList = root.getChildren("configurations").get(0).getChildren("configuration");
+        for (Element configuration : configurationList){
+            configurations.put(configuration.getAttributeValue("name").toUpperCase(),configuration.getAttributeValue("value").toUpperCase());
+        }
+        return configurations;
     }
 }
