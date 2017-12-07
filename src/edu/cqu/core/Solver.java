@@ -1,5 +1,6 @@
 package edu.cqu.core;
 
+import edu.cqu.gui.DOTrenderer;
 import edu.cqu.parser.ProblemParser;
 
 /**
@@ -7,10 +8,14 @@ import edu.cqu.parser.ProblemParser;
  */
 public class Solver {
 
-    public void solve(String agentDescriptorPath,String agentType,String problemPath,FinishedListener listener){
+    public void solve(String agentDescriptorPath,String agentType,String problemPath,FinishedListener listener,boolean showConstraintGraph,boolean showPesudoTree){
         ProblemParser parser = new ProblemParser(problemPath);
         Problem problem = parser.parse();
-        AgentManager manager = new AgentManager(agentDescriptorPath,agentType,problem,listener);
+        AgentManager manager = new AgentManager(agentDescriptorPath,agentType,problem,listener,showPesudoTree);
+        if (showConstraintGraph){
+            new DOTrenderer("constraint",manager.getConstraintGraphDOTString(),"auxiliary/graphviz/bin/dot");
+        }
+
         manager.startAgents();
     }
 }

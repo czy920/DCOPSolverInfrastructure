@@ -27,6 +27,7 @@ public class SyncMailer extends Process{
     private FinishedListener listener;
     private Set<Agent> stoppedAgents;
     private boolean printCycle;
+    private List<CycleListener> cycleListeners;
 
     public SyncMailer(){
         super("mailer");
@@ -36,6 +37,7 @@ public class SyncMailer extends Process{
         phase = new AtomicInteger(PHASE_AGENT);
         costInCycle = new double[2];
         stoppedAgents = new HashSet<>();
+        cycleListeners = new LinkedList<>();
     }
 
     public SyncMailer(FinishedListener finishedListener){
@@ -46,6 +48,10 @@ public class SyncMailer extends Process{
 
     public void setPrintCycle(boolean printCycle) {
         this.printCycle = printCycle;
+    }
+
+    public void registerCycleListener(CycleListener listener){
+        cycleListeners.add(listener);
     }
 
     private void expand(){
@@ -104,6 +110,9 @@ public class SyncMailer extends Process{
                     expand();
                 }
                 costInCycle[tail++] = cost;
+                for (CycleListener listener : cycleListeners){
+                    listener.onCycleChanged(tail);
+                }
                 if (printCycle){
                     System.out.println("cycle " + tail);
                 }
@@ -167,5 +176,9 @@ public class SyncMailer extends Process{
                 listener.onFinished(this.resultCycle);
             }
         }
+    }
+
+    public interface CycleListener{
+        void onCycleChanged(int cycle);
     }
 }

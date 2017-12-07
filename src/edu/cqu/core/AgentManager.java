@@ -1,5 +1,7 @@
 package edu.cqu.core;
 
+import edu.cqu.gui.DOTrenderer;
+import edu.cqu.ordering.DFSSyncAgent;
 import edu.cqu.parser.AgentParser;
 import edu.cqu.test.TestAsyncAgent;
 import edu.cqu.test.TestSyncAgent;
@@ -24,7 +26,7 @@ public class AgentManager {
     private SyncMailer syncMailer;
     private static Map<String,AgentDescriptor> agentDescriptors;
 
-    public AgentManager(String agentDescriptorPath,String agentType,Problem problem,FinishedListener listener) {
+    public AgentManager(String agentDescriptorPath,String agentType,Problem problem,FinishedListener listener,boolean showPesudoTreeGraph) {
         agents = new LinkedList<>();
         AgentParser agentParser = new AgentParser(agentDescriptorPath);
         agentDescriptors = agentParser.parse();
@@ -38,6 +40,9 @@ public class AgentManager {
         }
         else {
             syncMailer = new SyncMailer(listener);
+            if (showPesudoTreeGraph){
+                syncMailer.registerCycleListener(new ShowPesudoTreeGraph());
+            }
             if (configurations.containsKey(CONFIG_KEY_PRINT_CYCLE)){
                 if (configurations.get(CONFIG_KEY_PRINT_CYCLE).equals("TRUE")){
                     syncMailer.setPrintCycle(true);
@@ -72,6 +77,46 @@ public class AgentManager {
         }
         else if (syncMailer != null){
             syncMailer.startProcess();
+        }
+    }
+
+    public String getConstraintGraphDOTString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("graph constraint{\n");
+        for (int i = 0; i < agents.size(); i++){
+            Agent agent = agents.get(i);
+            for (int neighbourId : agent.neighbours){
+                if (neighbourId > agent.id){
+                    stringBuilder.append("X" + agent.id + " -- " + "X" + neighbourId + ";\n");
+                }
+            }
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
+    }
+    public String getPseudoTreeGraphDOTString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        if (!(agents.get(0) instanceof DFSSyncAgent)){
+            return "";
+        }
+        stringBuilder.append("digraph pesudoTree{\n");
+        for (int i = 0; i < agents.size(); i++){
+            DFSSyncAgent agent = (DFSSyncAgent) agents.get(i);
+            stringBuilder.append(agent.toDOTString());
+        }
+        stringBuilder.append("}");
+        return stringBuilder.toString();
+    }
+
+    private class ShowPesudoTreeGraph implements SyncMailer.CycleListener{
+        @Override
+        public void onCycleChanged(int cycle) {
+            if (cycle == agents.size()){
+                String dot = getPseudoTreeGraphDOTString();
+                if (!dot.equals("")){
+                    new DOTrenderer("constraint",dot,"auxiliary/graphviz/bin/dot");
+                }
+            }
         }
     }
 }
