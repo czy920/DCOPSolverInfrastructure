@@ -49,6 +49,9 @@ public class AgentParser {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        if (root.getChildren("configurations").size() == 0){
+            return configurations;
+        }
         List<Element> configurationList = root.getChildren("configurations").get(0).getChildren("configuration");
         for (Element configuration : configurationList){
             configurations.put(configuration.getAttributeValue("name").toUpperCase(),configuration.getAttributeValue("value").toUpperCase());
