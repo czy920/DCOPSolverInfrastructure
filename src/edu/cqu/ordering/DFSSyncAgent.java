@@ -18,6 +18,7 @@ public abstract class DFSSyncAgent extends SyncAgent{
     protected List<Integer> children;
     private int currentChildIndex;
     protected List<Integer> pseudoParents;
+    protected int level;
 
     public DFSSyncAgent(int id, int[] domain, int[] neighbours, Map<Integer, int[][]> constraintCosts, Map<Integer, int[]> neighbourDomains, SyncMailer mailer) {
         super(id, domain, neighbours, constraintCosts, neighbourDomains, mailer);
@@ -56,13 +57,18 @@ public abstract class DFSSyncAgent extends SyncAgent{
                         HashSet<Integer> visited = new HashSet<>();
                         visited.add(id);
                         parent = -1;
+                        level = 0;
                         children.add(orderedDegree.get(0).getKey());
-                        sendMessage(new Message(id,orderedDegree.get(0).getKey(),MSG_DFS,visited));
+
+                        sendMessage(new Message(id,orderedDegree.get(0).getKey(),MSG_DFS,new DFSMessageContent(visited,level)));
                     }
                 }
                 break;
             case MSG_DFS: {
-                HashSet<Integer> visited = (HashSet) message.getValue();
+//                System.out.println(message);
+                DFSMessageContent content = (DFSMessageContent) message.getValue();
+                Set<Integer> visited = content.visited;
+                level = content.level + 1;
                 visited.add(id);
                 parent = message.getIdSender();
                 int selectedChild = 0;
@@ -71,6 +77,10 @@ public abstract class DFSSyncAgent extends SyncAgent{
                         if (orderedDegree.get(i).getKey() != parent){
                             pseudoParents.add(orderedDegree.get(i).getKey());
                         }
+                    }
+                }
+                for (int i = 0; i < orderedDegree.size(); i++) {
+                    if (visited.contains(orderedDegree.get(i).getKey())) {
                         continue;
                     }
                     selectedChild = orderedDegree.get(i).getKey();
@@ -79,7 +89,7 @@ public abstract class DFSSyncAgent extends SyncAgent{
                 }
                 if (selectedChild != 0) {
                     children.add(selectedChild);
-                    sendMessage(new Message(id, selectedChild, MSG_DFS, visited));
+                    sendMessage(new Message(id, selectedChild, MSG_DFS, new DFSMessageContent(visited,level)));
                 }
                 else {
                     sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, visited));
@@ -91,9 +101,6 @@ public abstract class DFSSyncAgent extends SyncAgent{
                 int selectedChild = 0;
                 for (int i = currentChildIndex + 1; i < orderedDegree.size(); i++){
                     if (visited.contains(orderedDegree.get(i).getKey())) {
-                        if (orderedDegree.get(i).getKey() != parent){
-                            pseudoParents.add(orderedDegree.get(i).getKey());
-                        }
                         continue;
                     }
                     selectedChild = orderedDegree.get(i).getKey();
@@ -102,7 +109,7 @@ public abstract class DFSSyncAgent extends SyncAgent{
                 }
                 if (selectedChild != 0){
                     children.add(selectedChild);
-                    sendMessage(new Message(id, selectedChild, MSG_DFS, visited));
+                    sendMessage(new Message(id, selectedChild, MSG_DFS, new DFSMessageContent(visited,level)));
                 }
                 else {
                     pseudoTreeCreated();
@@ -115,4 +122,13 @@ public abstract class DFSSyncAgent extends SyncAgent{
     }
 
     protected abstract void pseudoTreeCreated();
+    private class DFSMessageContent{
+        Set<Integer> visited;
+        int level;
+
+        public DFSMessageContent(Set<Integer> visited, int level) {
+            this.visited = visited;
+            this.level = level;
+        }
+    }
 }
