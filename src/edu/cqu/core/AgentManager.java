@@ -111,7 +111,7 @@ public class AgentManager {
     private class ShowPesudoTreeGraph implements SyncMailer.CycleListener{
         @Override
         public void onCycleChanged(int cycle) {
-            if (cycle == agents.size()){
+            if (cycle == 2 * agents.size()){
                 String dot = getPseudoTreeGraphDOTString();
                 if (!dot.equals("")){
                     new DOTrenderer("constraint",dot,"auxiliary/graphviz/bin/dot");
