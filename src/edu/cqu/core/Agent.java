@@ -67,7 +67,7 @@ public abstract class Agent extends Process{
         return localView.get(neighbourId);
     }
 
-    protected String array2String(int[] arr){
+    public static String array2String(int[] arr){
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("[");
         for (int i = 0; i < arr.length; i++){
@@ -80,5 +80,20 @@ public abstract class Agent extends Process{
         }
         return stringBuilder.toString();
     }
+
+    public static String map2String(Map map){
+        return map2String(map,null,null);
+    }
+
+    public static String map2String(Map map, Stringifier keyStringifier, Stringifier valueStringifier){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Object key : map.keySet()){
+            String keyString = keyStringifier == null ? key.toString() : keyStringifier.stringify(key);
+            String valueString = valueStringifier == null ? map.get(key).toString() : valueStringifier.stringify(map.get(key));
+            stringBuilder.append(keyString + "=" + valueString + "\n");
+        }
+        return stringBuilder.toString();
+    }
+
 
 }

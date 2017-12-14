@@ -75,7 +75,6 @@ public class Result {
         } catch (InstantiationException e) {
             System.out.println("substitute failed, reason:" + e.getStackTrace());
         }
-
     }
 
     public boolean checkFields(){
@@ -147,6 +146,55 @@ public class Result {
 
     public void subtract(Result result){
         arithmeticManipulate(result,new SubtractManipulator());
+    }
+
+    public void average(int times){
+        Set<Field> allFields = new HashSet<>();
+        getAllFields(this,allFields);
+        try {
+            for (Field field : allFields) {
+                Object value = field.get(this);
+                if (!field.isAnnotationPresent(AverageField.class)) {
+                    continue;
+                }
+                if (field.getType().isPrimitive()) {
+                    field.set(this, div(value, times));
+                }
+                else if (field.getType().isArray()){
+                    Object array = value;
+                    int length = Array.getLength(array);
+                    for (int i = 0; i < length; i++){
+                        Object val = Array.get(array,i);
+                        Array.set(array,i,div(val,times));
+                    }
+                }
+                else if (value instanceof List){
+                    List list = (List) value;
+                    for (int i = 0; i < list.size(); i++){
+                        Object old = list.get(i);
+                        list.set(i,div(old,times));
+                    }
+                }
+            }
+        } catch (Exception e){
+
+        }
+    }
+
+    private Object div(Object num, int den){
+        if (num instanceof Integer){
+            return (int)num / den;
+        }
+        if (num instanceof Float){
+            return (float)num / den;
+        }
+        if (num instanceof Double){
+            return (double)num / den;
+        }
+        if (num instanceof Long){
+            return (long)num / den;
+        }
+        throw new IllegalArgumentException("Unknown num type");
     }
 
     private void arithmeticManipulate(Result result,AbstractManipulator manipulator){

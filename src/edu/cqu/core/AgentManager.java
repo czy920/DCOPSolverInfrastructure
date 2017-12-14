@@ -20,6 +20,7 @@ public class AgentManager {
     private static final String METHOD_SYNC = "SYNC";
 
     private static final String CONFIG_KEY_PRINT_CYCLE = "PRINTCYCLE";
+    private static final String CONFIG_KEY_SUPPRESS_OUTPUT = "SUPPRESSOUTPUT";
 
     private List<Agent> agents;
     private AsyncMailer asyncMailer;
@@ -35,6 +36,7 @@ public class AgentManager {
         }
         Map<String,String> configurations = agentParser.parseConfigurations();
         AgentDescriptor descriptor = agentDescriptors.get(agentType.toUpperCase());
+        boolean suppressOutput = false;
         if (descriptor.method.equals(METHOD_ASYNC)){
             asyncMailer = new AsyncMailer(listener);
         }
@@ -48,6 +50,11 @@ public class AgentManager {
                     syncMailer.setPrintCycle(true);
                 }
             }
+            if (configurations.containsKey(CONFIG_KEY_SUPPRESS_OUTPUT)){
+                if (configurations.get(CONFIG_KEY_SUPPRESS_OUTPUT).equals("TRUE")){
+                    suppressOutput = true;
+                }
+            }
         }
         for (int id : problem.allId){
             Agent agent = null;
@@ -59,6 +66,7 @@ public class AgentManager {
             } catch (Exception e) {
                 throw new RuntimeException("init exception");
             }
+            agent.setSuppressOutput(suppressOutput);
             agents.add(agent);
         }
     }
