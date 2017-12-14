@@ -48,6 +48,7 @@ public abstract class BFSSyncAgent extends SyncAgent {
         switch (message.getType()){
             case MSG_LAYER:
                 messageReceived.add(message.getIdSender());
+                System.out.println(message);
                 int receivedLevel = (int) message.getValue();
                 if (receivedLevel + 1 < level){
                     level = receivedLevel + 1;
@@ -66,21 +67,29 @@ public abstract class BFSSyncAgent extends SyncAgent {
                     if (receivedLevel == level) {
                         siblings.add(message.getIdSender());
                     }
-                    else {
+                    else if (receivedLevel < level){
                         pseudoParent.add(message.getIdSender());
                     }
-                    children.remove(message.getIdSender());
+                    children.remove((Object) message.getIdSender());
                 }
                 if (messageReceived.size() == neighbours.length){
                     assignPseudoChildren();
+                    System.out.println("id:" + id + " parent:" + parent + " pp:" + pseudoParent + " sibling:" + siblings + " children:" + children + " pc:" + pseudoChildren);
                     pseudoTreeCreated();
+                }
+                else {
+//                    System.out.println("id:" + id + " cannot create pt since " + messageReceived + " not satisfy " + array2String(neighbours));
                 }
                 break;
             case MSG_ACK:
                 messageReceived.add(message.getIdSender());
                 if (messageReceived.size() == neighbours.length){
                     assignPseudoChildren();
+                    System.out.println("id:" + id + " parent:" + parent + " pp:" + pseudoParent + " sibling:" + siblings + " children:" + children + " pc:" + pseudoChildren);
                     pseudoTreeCreated();
+                }
+                else {
+//                    System.out.println("id:" + id + " cannot create pt since " + messageReceived + " not satisfy " + array2String(neighbours));
                 }
         }
     }

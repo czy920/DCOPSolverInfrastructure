@@ -93,7 +93,9 @@ public abstract class DFSSyncAgent extends SyncAgent{
                 }
                 else {
                     sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, visited));
+                    pseudoTreeCreated();
                 }
+
                 break;
             }
             case MSG_DFS_BACKTRACK:
