@@ -1,5 +1,7 @@
 package edu.cqu.core;
 
+import edu.cqu.framework.ALSAgent;
+import edu.cqu.result.ResultAls;
 import edu.cqu.result.ResultCycle;
 
 import java.util.*;
@@ -21,6 +23,7 @@ public class SyncMailer extends Process{
     private Set<Integer> agentReady;
     private AtomicInteger phase;
     private double[] costInCycle;
+    private double[] bestCostInCyle;
     private int tail;
     private ResultCycle resultCycle;
     private long startTime;
@@ -36,6 +39,7 @@ public class SyncMailer extends Process{
         agentReady = new HashSet<>();
         phase = new AtomicInteger(PHASE_AGENT);
         costInCycle = new double[2];
+        bestCostInCyle = new double[2];
         stoppedAgents = new HashSet<>();
         cycleListeners = new LinkedList<>();
     }
@@ -56,10 +60,13 @@ public class SyncMailer extends Process{
 
     private void expand(){
         double[] tmpCostInCycle = new double[costInCycle.length * 2];
+        double[] tmpBestCostInCycle = new double[bestCostInCyle.length * 2];
         for (int i = 0 ; i < costInCycle.length; i++){
             tmpCostInCycle[i] = costInCycle[i];
+            tmpBestCostInCycle[i] = bestCostInCyle[i];
         }
         costInCycle = tmpCostInCycle;
+        bestCostInCyle = tmpBestCostInCycle;
     }
 
     public void register(SyncAgent agent){
@@ -109,7 +116,12 @@ public class SyncMailer extends Process{
                 if (tail == costInCycle.length - 1){
                     expand();
                 }
-                costInCycle[tail++] = cost;
+                costInCycle[tail] = cost;
+                Agent rootAgent = agents.get(1);
+                if (rootAgent instanceof ALSAgent){
+                    bestCostInCyle[tail] = ((ALSAgent) rootAgent).getBestCost();
+                }
+                tail++;
                 for (CycleListener listener : cycleListeners){
                     listener.onCycleChanged(tail);
                 }
@@ -172,6 +184,9 @@ public class SyncMailer extends Process{
             this.resultCycle.setTotalTime(new Date().getTime() - startTime);
             this.resultCycle.setMessageQuantity(messageCount);
             this.resultCycle.setCostInCycle(costInCycle,tail);
+            if (agents.get(1) instanceof ALSAgent){
+                ((ResultAls) this.resultCycle).setBestCostInCycle(bestCostInCyle,tail);
+            }
             if (listener != null){
                 listener.onFinished(this.resultCycle);
             }
