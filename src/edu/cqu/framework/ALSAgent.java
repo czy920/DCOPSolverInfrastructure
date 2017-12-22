@@ -47,14 +47,12 @@ public abstract class ALSAgent extends BFSSyncAgent {
 
     @Override
     protected void pseudoTreeCreated() {
-//        System.out.println(level);
         if (children.size() == 0){
             h = 0;
             sendMessage(new Message(id,parent,MSG_HEIGHT,h));
         }
         else if (heightReceived == children.size() && !isSent){
             isSent = true;
-            System.out.println(id + " is done");
             if (id != 1) {
                 sendMessage(new Message(id, parent, MSG_HEIGHT, ++h));
             }
@@ -73,14 +71,12 @@ public abstract class ALSAgent extends BFSSyncAgent {
         super.disposeMessage(message);
         switch (message.getType()){
             case MSG_HEIGHT:
-//                System.out.println(message);
                 int childHeight = (int) message.getValue();
                 if (childHeight > h){
                     h = childHeight;
                 }
                 if (++heightReceived == children.size() && !isSent){
                     isSent = true;
-                    System.out.println(id + " is done");
                     if (id != 1) {
                         sendMessage(new Message(id, parent, MSG_HEIGHT, ++h));
                     }
@@ -101,7 +97,7 @@ public abstract class ALSAgent extends BFSSyncAgent {
                 break;
             case MSG_BEST_STEP:
                 int receivedStep = (int) message.getValue();
-                best = value[roundIndex(receivedStep)];
+                best = value[receivedStep % (level * 2 + h)];
                 bestStep = receivedStep;
                 break;
             case MSG_COST:
@@ -109,16 +105,18 @@ public abstract class ALSAgent extends BFSSyncAgent {
                 break;
         }
     }
+    private int testStep;
 
     @Override
     public void allMessageDisposed() {
         super.allMessageDisposed();
+
         if (counter != Integer.MAX_VALUE){
             if (--counter < 0){
                 counter = Integer.MAX_VALUE;
-                localCost = new int[2 * (level + h)];
-                value = new int[2 * (level + h)];
-                System.out.println(level + h);
+                h++;
+                localCost = new int[h];
+                value = new int[level + h + level];
                 for (int neighbourId : neighbours){
                     localView.put(neighbourId,new int[2 * (level + h)]);
                 }
@@ -127,32 +125,31 @@ public abstract class ALSAgent extends BFSSyncAgent {
                     bestCost = Integer.MAX_VALUE;
                 }
                 bestStep = 0;
+                step = 0;
                 alsReady();
             }
         }
         if (alsStarted){
             if (step < (m + h + level)){
+                decision();
+                localCost[step % h] = getLocalCost();
+                cost = calculateStepCost();
+                cost += sumOfCost;
                 if (id != 1) {
                     sendMessage(new Message(id, parent, MSG_COST, cost));
                 }
-                sendAllMessages();
                 for (int child : children){
                     sendMessage(new Message(id,child,MSG_BEST_STEP,bestStep));
                 }
-                localCost[roundIndex(step)] = getLocalCost();
-                cost = calculateStepCost();
-                cost += sumOfCost;
-
                 if (id == 1){
-                    if (cost < bestCost && step > (level + h + 1)){
+                    if (cost < bestCost && step >= h){
                         bestCost = cost;
-                        best = value[roundIndex(step)];
+                        best = value[step % (level * 2 + h)];
                         bestStep = step;
                     }
 
                 }
                 sumOfCost = 0;
-                decision();
                 step++;
             }
             else if (iteration++ < (level + h)) {
@@ -164,35 +161,31 @@ public abstract class ALSAgent extends BFSSyncAgent {
                 stopProcess();
             }
         }
+        testStep++;
     }
 
     protected abstract void alsReady();
     protected abstract void decision();
-    protected abstract void sendAllMessages();
 
-    protected void assignValue (int value){
-        this.value[roundIndex(step)] = value;
+    protected void assignAlsValue(int value){
+        this.value[step % (level * 2 + h)] = value;
     }
 
-    protected void assignNextValue(int value){
-        this.value[roundIndex(step + 1)] = value;
+    protected void assignAlsNextValue(int value){
+        this.value[(step + 1) % (level * 2 + h)] = value;
     }
 
 
 
     private int calculateStepCost(){
         int step;
-        if (this.step >= h)
-            step = roundIndex(this.step - h);
+        if (this.step >= h - 1)
+            step = (this.step - h + 1) % h;
         else
-            step = this.step;
-
+            return 0;
         return localCost[step];
     }
 
-    private int roundIndex(int step){
-        return step % (2 * (level + h));
-    }
 
     public double getBestCost(){
         return bestCost / 2;
