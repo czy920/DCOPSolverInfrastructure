@@ -31,6 +31,7 @@ public class SyncMailer extends Process{
     private Set<Agent> stoppedAgents;
     private boolean printCycle;
     private List<CycleListener> cycleListeners;
+    private double sumCost = 0;
 
     public SyncMailer(){
         super("mailer");
@@ -102,7 +103,6 @@ public class SyncMailer extends Process{
                     }
                 }
                 boolean canTerminate = true;
-                double cost = 0;
                 for (SyncAgent syncAgent : agents.values()){
                     if (syncAgent.isRunning()){
                         canTerminate = false;
@@ -110,13 +110,12 @@ public class SyncMailer extends Process{
                     else {
                         stoppedAgents.add(syncAgent);
                     }
-                    cost += syncAgent.getLocalCost();
                 }
-                cost /= 2;
                 if (tail == costInCycle.length - 1){
                     expand();
                 }
-                costInCycle[tail] = cost;
+                costInCycle[tail] = sumCost / 2;
+                sumCost = 0;
                 Agent rootAgent = agents.get(1);
                 if (rootAgent instanceof ALSAgent){
                     bestCostInCyle[tail] = ((ALSAgent) rootAgent).getBestCost();
@@ -154,6 +153,7 @@ public class SyncMailer extends Process{
     public synchronized void agentDone(int id){
         synchronized (agentReady){
             agentReady.add(id);
+            sumCost += agents.get(id).getLocalCost();
             if (agentReady.size() == agents.size() - stoppedAgents.size()){
                 phase.set(PHASE_MAILER);
             }

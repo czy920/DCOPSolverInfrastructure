@@ -12,12 +12,18 @@ public abstract class SyncAgent extends Agent {
 
     private Queue<Message> messageQueue;
     protected SyncMailer mailer;
+    private int pendingValueIndex;
 
     public SyncAgent(int id, int[] domain, int[] neighbours, Map<Integer, int[][]> constraintCosts, Map<Integer, int[]> neighbourDomains,SyncMailer mailer) {
         super(id, domain, neighbours, constraintCosts, neighbourDomains);
         messageQueue = new LinkedList<>();
         this.mailer = mailer;
         mailer.register(this);
+        pendingValueIndex = -1;
+    }
+
+    public void assignValueIndex(int pendingValueIndex){
+        this.pendingValueIndex = pendingValueIndex;
     }
 
     @Override
@@ -47,6 +53,10 @@ public abstract class SyncAgent extends Agent {
             }
             allMessageDisposed();
             mailer.agentDone(this.id);
+            if (pendingValueIndex >= 0){
+                valueIndex = pendingValueIndex;
+                pendingValueIndex = -1;
+            }
         }
     }
 
