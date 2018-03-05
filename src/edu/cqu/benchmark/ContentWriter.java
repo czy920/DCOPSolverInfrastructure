@@ -2,6 +2,7 @@ package edu.cqu.benchmark;
 
 import edu.cqu.benchmark.graphcoloring.GraphColoringGenerator;
 import edu.cqu.benchmark.graphcoloring.WeightedGraphColoringGenerator;
+import edu.cqu.benchmark.randomdcops.RandomADCOPGenerator;
 import edu.cqu.benchmark.randomdcops.RandomDCOPGenerator;
 import edu.cqu.benchmark.scalefreenetworks.ScaleFreeNetworkGenerator;
 import org.jdom2.Element;
@@ -18,10 +19,11 @@ import java.util.Map;
  */
 public class ContentWriter {
 
-    public static final String PROBLEM_SCALE_FREE_NETWORK = "scalefreenetwork";
-    public static final String PROBLEM_RANDOM_DCOP = "RANDOMDCOP";
+    public static final String PROBLEM_SCALE_FREE_NETWORK = "SCALE_FREE_NETWORK";
+    public static final String PROBLEM_RANDOM_DCOP = "RANDOM_DCOP";
     public static final String PROBLEM_GRAPH_COLORING = "GRAPH_COLORING";
     public static final String PROBLEM_WEIGHTED_GRAPH_COLORING = "WEIGHTED_GRAPH_COLORING";
+    public static final String PROBLEM_RANDOM_ADCOP = "RANDOM_ADCOP";
 
     private int nbInstance;
     private String dirPath;
@@ -83,6 +85,9 @@ public class ContentWriter {
             else if (problemType.equals(PROBLEM_WEIGHTED_GRAPH_COLORING)){
                 graph = new WeightedGraphColoringGenerator("instance" + i,nbAgent,domainSize,minCost,maxCost,(double)extraParameter.get("density"));
             }
+            else if (problemType.equals(PROBLEM_RANDOM_ADCOP)){
+                graph = new RandomADCOPGenerator("instance" + i,nbAgent,domainSize,minCost,maxCost,(double)extraParameter.get("density"));
+            }
             graph.generateConstraint();
             root.addContent(graph.getPresentation());
             root.addContent(graph.getAgents());
@@ -98,8 +103,8 @@ public class ContentWriter {
 
     public static void main(String[] args) throws Exception{
         Map<String,Object> para = new HashMap<String, Object>();
-        para.put("density",0.01);
-        ContentWriter writer = new ContentWriter(1,"C:\\Users\\admin\\Desktop\\test0518",80,10,1,100,PROBLEM_RANDOM_DCOP,para);
+        para.put("density",0.1);
+        ContentWriter writer = new ContentWriter(25,"problem/dcop/70/sparse",70,10,1,100,PROBLEM_RANDOM_DCOP,para);
         writer.generate();
     }
 }

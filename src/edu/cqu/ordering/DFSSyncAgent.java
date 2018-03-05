@@ -11,6 +11,7 @@ public abstract class DFSSyncAgent extends SyncAgent{
     private static final int MSG_DEGREE = 0XFFFF0;
     private static final int MSG_DFS = 0XFFFF1;
     private static final int MSG_DFS_BACKTRACK = 0XFFFF2;
+    private static final int MSG_START = 0XFFFF3;
 
     protected Map<Integer,Integer> degreeView;
     protected List<Map.Entry<Integer,Integer>> orderedDegree;
@@ -19,6 +20,8 @@ public abstract class DFSSyncAgent extends SyncAgent{
     private int currentChildIndex;
     protected List<Integer> pseudoParents;
     protected int level;
+    protected int height;
+    private int maxSubHeight;
 
     public DFSSyncAgent(int id, int[] domain, int[] neighbours, Map<Integer, int[][]> constraintCosts, Map<Integer, int[]> neighbourDomains, SyncMailer mailer) {
         super(id, domain, neighbours, constraintCosts, neighbourDomains, mailer);
@@ -26,6 +29,14 @@ public abstract class DFSSyncAgent extends SyncAgent{
         children = new LinkedList<>();
         pseudoParents = new LinkedList<>();
         parent = -1;
+    }
+
+    protected boolean isRootAgent(){
+        return parent < 0;
+    }
+
+    private boolean isLeafAgent(){
+        return children.size() == 0;
     }
 
     @Override
@@ -92,14 +103,18 @@ public abstract class DFSSyncAgent extends SyncAgent{
                     sendMessage(new Message(id, selectedChild, MSG_DFS, new DFSMessageContent(visited,level)));
                 }
                 else {
-                    sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, visited));
-                    pseudoTreeCreated();
+                    height = 0;
+                    sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, new BacktrackMessageContent(visited,height)));
                 }
 
                 break;
             }
             case MSG_DFS_BACKTRACK:
-                HashSet<Integer> visited = (HashSet) message.getValue();
+                BacktrackMessageContent content = (BacktrackMessageContent) message.getValue();
+                Set<Integer> visited = content.visited;
+                if (content.height > maxSubHeight){
+                    maxSubHeight = content.height;
+                }
                 int selectedChild = 0;
                 for (int i = currentChildIndex + 1; i < orderedDegree.size(); i++){
                     if (visited.contains(orderedDegree.get(i).getKey())) {
@@ -114,11 +129,24 @@ public abstract class DFSSyncAgent extends SyncAgent{
                     sendMessage(new Message(id, selectedChild, MSG_DFS, new DFSMessageContent(visited,level)));
                 }
                 else {
-                    pseudoTreeCreated();
+                     height = maxSubHeight + 1;
                     if (id != 1) {
-                        sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, visited));
+                        sendMessage(new Message(id, parent, MSG_DFS_BACKTRACK, new BacktrackMessageContent(visited,height)));
+                    }
+                    else {
+                        for (int childId : children){
+                            sendMessage(new Message(id,childId,MSG_START,null));
+                        }
+                        pseudoTreeCreated();
                     }
                 }
+                break;
+            case MSG_START:
+
+                for (int childId : children){
+                    sendMessage(new Message(id,childId,MSG_START,null));
+                }
+                pseudoTreeCreated();
                 break;
         }
     }
@@ -131,6 +159,16 @@ public abstract class DFSSyncAgent extends SyncAgent{
         public DFSMessageContent(Set<Integer> visited, int level) {
             this.visited = visited;
             this.level = level;
+        }
+    }
+
+    private class BacktrackMessageContent{
+        Set<Integer> visited;
+        int height;
+
+        public BacktrackMessageContent(Set<Integer> visited, int height) {
+            this.visited = visited;
+            this.height = height;
         }
     }
 

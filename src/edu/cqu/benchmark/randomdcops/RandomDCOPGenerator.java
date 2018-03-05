@@ -74,7 +74,7 @@ public class RandomDCOPGenerator extends AbstractGraph {
     public void generateConstraint() {
         generateInitConnectedGraph();
         int maxEdges = (int) (nbAgent * (nbAgent - 1) * density / 2);
-        for (int i = nbAgent - 1; i <= maxEdges; i++){
+        for (int i = nbAgent - 1; i < maxEdges; i++){
             int startPoint = random.nextInt(nbAgent) + 1;
             int endPoint = random.nextInt(nbAgent) + 1;
             while (startPoint == endPoint || adjacentTable.get(startPoint).contains(endPoint)){

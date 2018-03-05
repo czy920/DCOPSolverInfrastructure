@@ -45,6 +45,7 @@ public abstract class BFSSyncAgent extends SyncAgent {
 
     @Override
     public void disposeMessage(Message message) {
+//        System.out.println(message);
         switch (message.getType()){
             case MSG_LAYER:
                 messageReceived.add(message.getIdSender());
@@ -61,16 +62,19 @@ public abstract class BFSSyncAgent extends SyncAgent {
                     for (int child : children){
                         sendMessage(new Message(id,child,MSG_LAYER,level));
                     }
-                    sendMessage(new Message(id,parent,MSG_ACK,null));
+                    sendMessage(new Message(id,parent,MSG_ACK,true));
                 }
                 else {
                     if (receivedLevel == level) {
                         siblings.add(message.getIdSender());
+                        children.remove((Object) message.getIdSender());
                     }
                     else if (receivedLevel < level){
                         pseudoParent.add(message.getIdSender());
+                        sendMessage(new Message(id,message.getIdSender(),MSG_ACK,false));
+                        children.remove((Object) message.getIdSender());
                     }
-                    children.remove((Object) message.getIdSender());
+
                 }
                 if (messageReceived.size() == neighbours.length){
                     assignPseudoChildren();
@@ -80,6 +84,13 @@ public abstract class BFSSyncAgent extends SyncAgent {
                 break;
             case MSG_ACK:
                 messageReceived.add(message.getIdSender());
+                boolean isParent = (boolean) message.getValue();
+                if (!isParent){
+                    if (!children.contains(message.getIdSender())){
+                        throw new IllegalStateException("impossible");
+                    }
+                    children.remove((Object) message.getIdSender());
+                }
                 if (messageReceived.size() == neighbours.length){
                     assignPseudoChildren();
                     pseudoTreeCreated();

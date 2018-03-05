@@ -2,7 +2,6 @@ package edu.cqu.utils;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.PrintStream;
 
 public class FileUtils {
     public static void writeStringToFile(String content, String filePath){
@@ -18,5 +17,15 @@ public class FileUtils {
          } catch (Exception e){
 
          }
+    }
+
+    public static String joinPaths(String ...paths){
+        StringBuilder stringBuilder = new StringBuilder();
+        for (String path : paths){
+            stringBuilder.append(path);
+            stringBuilder.append("/");
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+        return stringBuilder.toString();
     }
 }

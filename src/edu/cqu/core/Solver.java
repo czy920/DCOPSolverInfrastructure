@@ -30,6 +30,17 @@ public class Solver {
         manager.startAgents();
     }
 
+    public void solve(String agentDescriptorPath,String agentType,String problemPath,FinishedListener listener,boolean showConstraintGraph,boolean showPesudoTree,AgentIteratedOverListener agentIteratedOverListener){
+        ProblemParser parser = new ProblemParser(problemPath);
+        Problem problem = parser.parse();
+        AgentManager manager = new AgentManager(agentDescriptorPath,agentType,problem,listener,showPesudoTree);
+        manager.addAgentIteratedOverListener(agentIteratedOverListener);
+        if (showConstraintGraph){
+            new DOTrenderer("constraint",manager.getConstraintGraphDOTString(),"auxiliary/graphviz/bin/dot");
+        }
+        manager.startAgents();
+    }
+
     public void batchSolve(String agentDescriptorPath,String agentType,String problemDir,int validateTime,FinishedListener listener,ProgressChangedListener progressChangedListener){
         File dir = new File(problemDir);
         List<File> acceptedProblemFiles = new LinkedList<>();
@@ -54,10 +65,12 @@ public class Solver {
         int currentValidateTime;
         int currentProblemIndex;
         Result validatingResult;
+        ProgressChangedListener progressChangedListener;
 
-        public EachProblemFinishedListener(int validateTime,int problemCount) {
+        public EachProblemFinishedListener(int validateTime,int problemCount,ProgressChangedListener progressChangedListener) {
             this.validateTime = validateTime;
             problemResults = new Result[problemCount];
+            this.progressChangedListener = progressChangedListener;
         }
 
         @Override
@@ -69,6 +82,7 @@ public class Solver {
                 validatingResult.add(result);
             }
             currentValidateTime++;
+            progressChangedListener.onProgressChanged((1.0 * currentProblemIndex * validateTime + currentValidateTime) / (problemResults.length * validateTime),result);
             if (currentValidateTime == validateTime){
                 currentValidateTime = 0;
                 validatingResult.average(validateTime);
@@ -110,7 +124,7 @@ public class Solver {
             this.problemPaths = problemPaths;
             this.finishedListener = finishedListener;
             this.progressChangedListener = progressChangedListener;
-            eachProblemFinishedListener = new EachProblemFinishedListener(validateTime,problemPaths.length);
+            eachProblemFinishedListener = new EachProblemFinishedListener(validateTime,problemPaths.length,progressChangedListener);
             this.validateTime = validateTime;
         }
 
@@ -139,7 +153,6 @@ public class Solver {
                     if (currentProblemIndex == problemPaths.length){
                         break;
                     }
-                    progressChangedListener.onProgressChanged((1.0 * currentProblemIndex * validateTime + currentValidateTime) / (problemPaths.length * validateTime));
                     isSolving.set(true);
                     solve(agentDescriptorPath,agentType,problemPaths[currentProblemIndex],eachProblemFinishedListener,false,false);
                 }

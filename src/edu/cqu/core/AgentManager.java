@@ -3,8 +3,6 @@ package edu.cqu.core;
 import edu.cqu.gui.DOTrenderer;
 import edu.cqu.ordering.DFSSyncAgent;
 import edu.cqu.parser.AgentParser;
-import edu.cqu.test.TestAsyncAgent;
-import edu.cqu.test.TestSyncAgent;
 
 import java.lang.reflect.Constructor;
 import java.util.LinkedList;
@@ -69,6 +67,10 @@ public class AgentManager {
             agent.setSuppressOutput(suppressOutput);
             agents.add(agent);
         }
+    }
+
+    public void addAgentIteratedOverListener(AgentIteratedOverListener listener){
+        syncMailer.registerAgentIteratedOverListener(listener);
     }
 
     public void startAgents(){

@@ -5,7 +5,6 @@ import edu.cqu.result.ResultAls;
 import edu.cqu.result.ResultCycle;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -31,6 +30,7 @@ public class SyncMailer extends Process{
     private Set<Agent> stoppedAgents;
     private boolean printCycle;
     private List<CycleListener> cycleListeners;
+    private List<AgentIteratedOverListener> agentIteratedOverListeners;
     private double sumCost = 0;
 
     public SyncMailer(){
@@ -43,6 +43,7 @@ public class SyncMailer extends Process{
         bestCostInCyle = new double[2];
         stoppedAgents = new HashSet<>();
         cycleListeners = new LinkedList<>();
+        agentIteratedOverListeners = new LinkedList<>();
     }
 
     public SyncMailer(FinishedListener finishedListener){
@@ -57,6 +58,10 @@ public class SyncMailer extends Process{
 
     public void registerCycleListener(CycleListener listener){
         cycleListeners.add(listener);
+    }
+
+    public void registerAgentIteratedOverListener(AgentIteratedOverListener listener){
+        agentIteratedOverListeners.add(listener);
     }
 
     private void expand(){
@@ -98,9 +103,7 @@ public class SyncMailer extends Process{
                     if (agents.get(message.getIdReceiver()).isRunning()){
                         agents.get(message.getIdReceiver()).addMessage(message);
                     }
-                    else {
 
-                    }
                 }
                 boolean canTerminate = true;
                 for (SyncAgent syncAgent : agents.values()){
@@ -114,6 +117,9 @@ public class SyncMailer extends Process{
                 if (tail == costInCycle.length - 1){
                     expand();
                 }
+                for (Agent agent : stoppedAgents){
+                    sumCost += agent.getLocalCost();
+                }
                 costInCycle[tail] = sumCost / 2;
                 sumCost = 0;
                 Agent rootAgent = agents.get(1);
@@ -123,6 +129,9 @@ public class SyncMailer extends Process{
                 tail++;
                 for (CycleListener listener : cycleListeners){
                     listener.onCycleChanged(tail);
+                }
+                for (AgentIteratedOverListener listener : agentIteratedOverListeners){
+                    listener.agentIteratedOver(agents);
                 }
                 if (printCycle){
                     System.out.println("cycle " + tail);
