@@ -3,6 +3,7 @@ package edu.cqu.core;
 import edu.cqu.framework.ALSAgent;
 import edu.cqu.result.ResultAls;
 import edu.cqu.result.ResultCycle;
+import edu.cqu.result.annotations.NotRecordCostInCycle;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -32,6 +33,9 @@ public class SyncMailer extends Process{
     private List<CycleListener> cycleListeners;
     private List<AgentIteratedOverListener> agentIteratedOverListeners;
     private double sumCost = 0;
+    private int t;
+    private int ncccs;
+    private boolean recordCostInCycle;
 
     public SyncMailer(){
         super("mailer");
@@ -44,6 +48,7 @@ public class SyncMailer extends Process{
         stoppedAgents = new HashSet<>();
         cycleListeners = new LinkedList<>();
         agentIteratedOverListeners = new LinkedList<>();
+        recordCostInCycle = true;
     }
 
     public SyncMailer(FinishedListener finishedListener){
@@ -76,6 +81,9 @@ public class SyncMailer extends Process{
     }
 
     public void register(SyncAgent agent){
+        if (recordCostInCycle){
+            recordCostInCycle = !agent.getClass().isAnnotationPresent(NotRecordCostInCycle.class);
+        }
         agents.put(agent.id,agent);
     }
 
@@ -102,6 +110,11 @@ public class SyncMailer extends Process{
                     messageCount++;
                     if (agents.get(message.getIdReceiver()).isRunning()){
                         agents.get(message.getIdReceiver()).addMessage(message);
+                        int senderNccc = agents.get(message.getIdSender()).ncccs;
+                        int receiverNcccc = agents.get(message.getIdReceiver()).ncccs;
+                        ncccs = Integer.max(ncccs,senderNccc);
+                        ncccs = Integer.max(ncccs,receiverNcccc);
+                        agents.get(message.getIdReceiver()).ncccs = Integer.max(senderNccc + t,receiverNcccc);
                     }
 
                 }
@@ -114,17 +127,21 @@ public class SyncMailer extends Process{
                         stoppedAgents.add(syncAgent);
                     }
                 }
-                if (tail == costInCycle.length - 1){
-                    expand();
+                if (recordCostInCycle) {
+                    if (tail == costInCycle.length - 1){
+                        expand();
+                    }
+                    for (Agent agent : stoppedAgents) {
+                        sumCost += agent.getLocalCost();
+                    }
+                    costInCycle[tail] = sumCost / 2;
                 }
-                for (Agent agent : stoppedAgents){
-                    sumCost += agent.getLocalCost();
-                }
-                costInCycle[tail] = sumCost / 2;
                 sumCost = 0;
-                Agent rootAgent = agents.get(1);
-                if (rootAgent instanceof ALSAgent){
-                    bestCostInCyle[tail] = ((ALSAgent) rootAgent).getBestCost();
+                if (recordCostInCycle) {
+                    Agent rootAgent = agents.get(1);
+                    if (rootAgent instanceof ALSAgent) {
+                        bestCostInCyle[tail] = ((ALSAgent) rootAgent).getBestCost();
+                    }
                 }
                 tail++;
                 for (CycleListener listener : cycleListeners){
@@ -192,10 +209,12 @@ public class SyncMailer extends Process{
         if (this.resultCycle.getAgents().size() == agents.size()){
             this.resultCycle.setTotalTime(new Date().getTime() - startTime);
             this.resultCycle.setMessageQuantity(messageCount);
-            this.resultCycle.setCostInCycle(costInCycle,tail);
+            if (recordCostInCycle)
+                this.resultCycle.setCostInCycle(costInCycle,tail);
             if (agents.get(1) instanceof ALSAgent){
                 ((ResultAls) this.resultCycle).setBestCostInCycle(bestCostInCyle,tail);
             }
+            this.resultCycle.setNcccs(ncccs);
             if (listener != null){
                 listener.onFinished(this.resultCycle);
             }
