@@ -18,9 +18,15 @@ public class Result {
     protected int messageQuantity;
     @AverageField
     protected long totalTime;
+    @AverageField
+    protected int ncccs;
     protected Map<Integer,Integer> agentValues;
     private int cycleLength;
     private int cycleOffset;
+
+    public int getMessageQuantity() {
+        return messageQuantity;
+    }
 
     public Result(){
         cycleLength = cycleOffset = -1;
@@ -28,6 +34,14 @@ public class Result {
             throw new IllegalArgumentException("multiple CycleLength or CycleOffset found!");
         }
         agentValues = new HashMap<>();
+    }
+
+    public void setNcccs(int ncccs) {
+        this.ncccs = ncccs;
+    }
+
+    public int getNcccs() {
+        return ncccs;
     }
 
     public void setMessageQuantity(int messageQuantity) {
