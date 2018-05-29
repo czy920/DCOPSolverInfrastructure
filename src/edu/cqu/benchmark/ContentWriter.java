@@ -2,6 +2,7 @@ package edu.cqu.benchmark;
 
 import edu.cqu.benchmark.graphcoloring.GraphColoringGenerator;
 import edu.cqu.benchmark.graphcoloring.WeightedGraphColoringGenerator;
+import edu.cqu.benchmark.randomdcops.AMaxDCSPGenerator;
 import edu.cqu.benchmark.randomdcops.RandomADCOPGenerator;
 import edu.cqu.benchmark.randomdcops.RandomDCOPGenerator;
 import edu.cqu.benchmark.scalefreenetworks.ScaleFreeNetworkGenerator;
@@ -24,6 +25,7 @@ public class ContentWriter {
     public static final String PROBLEM_GRAPH_COLORING = "GRAPH_COLORING";
     public static final String PROBLEM_WEIGHTED_GRAPH_COLORING = "WEIGHTED_GRAPH_COLORING";
     public static final String PROBLEM_RANDOM_ADCOP = "RANDOM_ADCOP";
+    public static final String PROBLEM_ASYMETIRC_MAX_DCSP = "RANDOM_A_MAX_DCSP";
 
     private int nbInstance;
     private String dirPath;
@@ -88,6 +90,9 @@ public class ContentWriter {
             else if (problemType.equals(PROBLEM_RANDOM_ADCOP)){
                 graph = new RandomADCOPGenerator("instance" + i,nbAgent,domainSize,minCost,maxCost,(double)extraParameter.get("density"));
             }
+            else if (problemType.equals(PROBLEM_ASYMETIRC_MAX_DCSP)){
+                graph = new AMaxDCSPGenerator("instance" + i,nbAgent,domainSize,minCost,maxCost,(double)extraParameter.get("density"),(double) extraParameter.get("p2"));
+            }
             graph.generateConstraint();
             root.addContent(graph.getPresentation());
             root.addContent(graph.getAgents());
@@ -103,8 +108,16 @@ public class ContentWriter {
 
     public static void main(String[] args) throws Exception{
         Map<String,Object> para = new HashMap<String, Object>();
-        para.put("density",0.1);
-        ContentWriter writer = new ContentWriter(25,"problem/dcop/70/sparse",70,10,1,100,PROBLEM_RANDOM_DCOP,para);
+        double p1 = 0.3;
+        para.put("density",p1);
+        int agentNum = 8;
+        int domainsize = 10;
+//        double p2 = 0.9;
+//        para.put("p2",p2);
+        String path = "ProblemTest/test3/"+agentNum+"/"+p1+"/"+domainsize;
+
+        String problemType = PROBLEM_RANDOM_DCOP;
+        ContentWriter writer = new ContentWriter(10,path,agentNum,domainsize,1,100,problemType,para);
         writer.generate();
     }
 }

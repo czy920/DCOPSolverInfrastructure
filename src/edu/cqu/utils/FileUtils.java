@@ -10,12 +10,12 @@ public class FileUtils {
             file.getParentFile().mkdirs();
         }
          try {
-             FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+             FileOutputStream fileOutputStream = new FileOutputStream(filePath,true);
              byte[] bits = content.getBytes();
              fileOutputStream.write(bits);
              fileOutputStream.close();
          } catch (Exception e){
-
+            e.printStackTrace();
          }
     }
 

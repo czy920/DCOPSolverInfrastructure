@@ -15,6 +15,8 @@ public abstract class Agent extends Process{
     private Map<Integer,Integer> localView;
     protected int valueIndex;
 
+    public int ncccs;
+
     public Agent(int id, int[] domain, int[] neighbours, Map<Integer, int[][]> constraintCosts,Map<Integer,int[]> neighbourDomains) {
         super("Agent " + id);
         this.id = id;
