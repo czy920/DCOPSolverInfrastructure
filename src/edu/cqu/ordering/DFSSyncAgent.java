@@ -32,10 +32,10 @@ public abstract class DFSSyncAgent extends SyncAgent{
     }
 
     protected boolean isRootAgent(){
-        return parent < 0;
+        return parent <= 0;
     }
 
-    private boolean isLeafAgent(){
+    protected boolean isLeafAgent(){
         return children.size() == 0;
     }
 
@@ -142,7 +142,6 @@ public abstract class DFSSyncAgent extends SyncAgent{
                 }
                 break;
             case MSG_START:
-
                 for (int childId : children){
                     sendMessage(new Message(id,childId,MSG_START,null));
                 }
