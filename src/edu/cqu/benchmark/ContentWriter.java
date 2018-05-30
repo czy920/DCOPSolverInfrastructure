@@ -2,6 +2,7 @@ package edu.cqu.benchmark;
 
 import edu.cqu.benchmark.graphcoloring.GraphColoringGenerator;
 import edu.cqu.benchmark.graphcoloring.WeightedGraphColoringGenerator;
+import edu.cqu.benchmark.meetingscheduling.MeetingScheduling;
 import edu.cqu.benchmark.randomdcops.AMaxDCSPGenerator;
 import edu.cqu.benchmark.randomdcops.RandomADCOPGenerator;
 import edu.cqu.benchmark.randomdcops.RandomDCOPGenerator;
@@ -26,6 +27,7 @@ public class ContentWriter {
     public static final String PROBLEM_WEIGHTED_GRAPH_COLORING = "WEIGHTED_GRAPH_COLORING";
     public static final String PROBLEM_RANDOM_ADCOP = "RANDOM_ADCOP";
     public static final String PROBLEM_ASYMETIRC_MAX_DCSP = "RANDOM_A_MAX_DCSP";
+    public static final String PROBLEM_MEETING_SCHEDULING = "MEETING_SCHEDULING";
 
     private int nbInstance;
     private String dirPath;
@@ -93,6 +95,13 @@ public class ContentWriter {
             else if (problemType.equals(PROBLEM_ASYMETIRC_MAX_DCSP)){
                 graph = new AMaxDCSPGenerator("instance" + i,nbAgent,domainSize,minCost,maxCost,(double)extraParameter.get("density"),(double) extraParameter.get("p2"));
             }
+            else if (problemType.equals(PROBLEM_MEETING_SCHEDULING)){
+                int nbMeeting = (int) extraParameter.get("nbm");
+                int meetingPerAgent = (int) extraParameter.get("mpa");
+                int maxTt = (int) extraParameter.get("maxtt");
+                int minTt = (int) extraParameter.get("mintt");
+                graph = new MeetingScheduling(nbAgent,nbMeeting,meetingPerAgent,maxTt,minTt,domainSize);
+            }
             graph.generateConstraint();
             root.addContent(graph.getPresentation());
             root.addContent(graph.getAgents());
@@ -110,13 +119,17 @@ public class ContentWriter {
         Map<String,Object> para = new HashMap<String, Object>();
         double p1 = 0.3;
         para.put("density",p1);
-        int agentNum = 8;
-        int domainsize = 10;
+        int agentNum = 90;
+        int domainsize = 20;
 //        double p2 = 0.9;
 //        para.put("p2",p2);
-        String path = "ProblemTest/test3/"+agentNum+"/"+p1+"/"+domainsize;
+        para.put("nbm",20);
+        para.put("mpa",2);
+        para.put("maxtt",10);
+        para.put("mintt",6);
+        String path = "problem/ms/"+agentNum + "/"+domainsize;
 
-        String problemType = PROBLEM_RANDOM_DCOP;
+        String problemType = PROBLEM_MEETING_SCHEDULING;
         ContentWriter writer = new ContentWriter(10,path,agentNum,domainsize,1,100,problemType,para);
         writer.generate();
     }
