@@ -171,6 +171,10 @@ public abstract class AbstractGraph {
         this.random = new Random();
     }
 
+    public AbstractGraph(){
+        random = new Random();
+    }
+
     public Element getAgents(){
         Element agentRootElement = new Element("agents");
         agentRootElement.setAttribute("nbAgents",String.valueOf(nbAgent));

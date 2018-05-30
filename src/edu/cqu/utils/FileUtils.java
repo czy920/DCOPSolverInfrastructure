@@ -15,7 +15,7 @@ public class FileUtils {
              fileOutputStream.write(bits);
              fileOutputStream.close();
          } catch (Exception e){
-
+            e.printStackTrace();
          }
     }
 
